@@ -417,7 +417,7 @@ class Grid:
         self.node_file = node_file
         self.edge_file = edge_file
         self.type_map = type_map
-        self.paths_file = None
+        self.paths_file = paths_file
 
         # Perform initialization of the gridspace.
         self.initialize_grid()
@@ -485,28 +485,40 @@ class Grid:
             self.neighbors_dict[node_id] = node_obj.neighbors
 
     def set_paths(self):
+        # If we already have an existing file containing the paths data in
+        # pickle format, read it in and update the paths attributes on our
+        # nodes.
         if self.paths_file:
 
-          with open(self.paths_file, 'rb') as f:
-              paths_data = pickle.load(f)
+            with open(self.paths_file, 'rb') as f:
+                paths_data = pickle.load(f)
 
-              for node in self.nodes:
-                  data_for_node = paths_data.get(node.node_id, None)
+                for node in self.nodes:
+                    data_for_node = paths_data.get(node.node_id, None)
 
-                  if data_for_node:
-                      node.paths = data_for_node
+                    if data_for_node:
+                        node.paths = data_for_node
 
         else:
-            num_nodes = len(self.nodes)
+            # Initialize a paths container that we will write to a file.
+            paths_dict = {}
 
             Printer.pp('Performing preprocessing step to find shortest paths. Please bear with us.')
 
+            num_nodes = len(self.nodes)
+
+            # Iterate through every node, setting the paths attribute with the
+            # shortest path to each possible destination.
             for indx, node in enumerate(self.nodes):
-                if node.node_type == 4:
+
+                # Ignore the node if it's an exit.
+                if node.node_type == self.type_map['exit']:
                     continue
 
                 node_id = node.node_id
 
+                # Compute the paths for every possible destination, saving only
+                # the next node to move to.
                 for destination in self.destination_nodes:
                     destination_node_id = destination.node_id
 
@@ -514,9 +526,18 @@ class Grid:
                                                                    node_id,
                                                                    destination_node_id).next_node()
 
+                paths_dict[node_id] = node.paths
+
                 if indx % 100 == 0 and indx != 0:
                     percent_done = ((indx+1)/float(num_nodes))*100
                     print('%d percent done.' % percent_done)
+
+            pickle_outfile = 'paths.pickle'
+
+            with open(pickle_outfile, 'wb') as f:
+                pickle.dump(paths_dict, f, -1)
+
+            print('---> Dumped paths to %s.' % pickle_outfile)
 
         print('---> Preprocessing done.')
 
@@ -658,15 +679,13 @@ class Simulation:
                 self.update_viz(x_vals, y_vals)
 
         print('Simulation completed.')
-
-        #time.sleep(3)
-        #plt.close()
+        plt.close()
 
 max_rows = 66
 max_cols = 139
 
 type_map = { 'sidewalk': 1, 'crosswalk': 2, 'entrance': 3, 'exit': 4 }
-grid = Grid(max_rows, max_cols, 'playMat.png.vertex.stripped', 'playMat.png.edge.stripped', type_map)
+grid = Grid(max_rows, max_cols, 'playMat.png.vertex.stripped', 'playMat.png.edge.stripped', type_map, 'paths.pickle')
 
 import timeit
 
