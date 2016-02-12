@@ -9,7 +9,7 @@ max_cols = 139
 type_map = { 'sidewalk': 1, 'crosswalk': 2, 'entrance': 3, 'exit': 4 }
 
 # Create a grid object that contains the underlying nodes and path information.
-grid = Grid(max_rows, max_cols, 'playMat.png.vertex.stripped', 'playMat.png.edge.stripped', type_map, 'paths.pickle')
+grid = Grid(max_rows, max_cols, 'vertices.csv', 'edges.csv', type_map, 'paths.pickle')
 
 # Set up a simulation object.
 simulation = Simulation(grid, {'num_pedestrians': 500, 'visualization': True})
