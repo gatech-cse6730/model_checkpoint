@@ -485,26 +485,38 @@ class Grid:
             self.neighbors_dict[node_id] = node_obj.neighbors
 
     def set_paths(self):
-        num_nodes = len(self.nodes)
+        if self.paths_file:
 
-        Printer.pp('Performing preprocessing step to find shortest paths. Please bear with us.')
+          with open(self.paths_file, 'rb') as f:
+              paths_data = pickle.load(f)
 
-        for indx, node in enumerate(self.nodes):
-            if node.node_type == 4:
-                continue
+              for node in self.nodes:
+                  data_for_node = paths_data.get(node.node_id, None)
 
-            node_id = node.node_id
+                  if data_for_node:
+                      node.paths = data_for_node
 
-            for destination in self.destination_nodes:
-                destination_node_id = destination.node_id
+        else:
+            num_nodes = len(self.nodes)
 
-                node.paths[destination_node_id] = ShortestPath(self.neighbors_dict,
-                                                               node_id,
-                                                               destination_node_id).next_node()
+            Printer.pp('Performing preprocessing step to find shortest paths. Please bear with us.')
 
-            if indx % 100 == 0 and indx != 0:
-                percent_done = ((indx+1)/float(num_nodes))*100
-                print('%d percent done.' % percent_done)
+            for indx, node in enumerate(self.nodes):
+                if node.node_type == 4:
+                    continue
+
+                node_id = node.node_id
+
+                for destination in self.destination_nodes:
+                    destination_node_id = destination.node_id
+
+                    node.paths[destination_node_id] = ShortestPath(self.neighbors_dict,
+                                                                   node_id,
+                                                                   destination_node_id).next_node()
+
+                if indx % 100 == 0 and indx != 0:
+                    percent_done = ((indx+1)/float(num_nodes))*100
+                    print('%d percent done.' % percent_done)
 
         print('---> Preprocessing done.')
 
