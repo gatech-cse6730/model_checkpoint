@@ -402,19 +402,22 @@ class Printer:
         print(text)
         print(char*length)
 
+import pickle
+
 class Grid:
     """
     Builds a grid used for translating the graph into a meaningful 2D arrangement.
     """
 
 
-    def __init__(self, max_rows, max_cols, node_file, edge_file, type_map):
+    def __init__(self, max_rows, max_cols, node_file, edge_file, type_map, paths_file=None):
         # Save some important attributes.
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.node_file = node_file
         self.edge_file = edge_file
         self.type_map = type_map
+        self.paths_file = None
 
         # Perform initialization of the gridspace.
         self.initialize_grid()
@@ -505,8 +508,6 @@ class Grid:
 
         print('---> Preprocessing done.')
 
-# In[35]:
-
 # Note: we will be developing a custom random number generator for the final
 # simulation.
 import random
@@ -555,16 +556,21 @@ class Simulation:
         # Set background image.
         img = plt.imread('playMat.png')
         plt.imshow(img, extent=(0, 140, 70, 0), zorder=0)
-        plt.draw()
+        plt.show()
 
     def update_viz(self, x_vals, y_vals):
         # Clear existing points.
         self.scat.remove()
 
-        # Plot updated points.
+        # Update points to be plotted.
         self.scat = self.ax.scatter(x_vals, y_vals, zorder=1)
+        # plt.scatter(random.randrange(0, 20), random.randrange(0, 15))
 
+        # Draw.
         plt.draw()
+
+        # A short pause so Mac OS X 10.11.3 doesn't break.
+        plt.pause(0.0001)
 
     def run(self):
         Printer.pp('Initializing simulation.')
@@ -641,16 +647,16 @@ class Simulation:
 
         print('Simulation completed.')
 
-        time.sleep(3)
-        plt.close()
+        #time.sleep(3)
+        #plt.close()
 
-# max_rows = 66
-# max_cols = 139
-#
-# type_map = { 'sidewalk': 1, 'crosswalk': 2, 'entrance': 3, 'exit': 4 }
-# grid = Grid(max_rows, max_cols, 'playMat.png.vertex.stripped', 'playMat.png.edge.stripped', type_map)
+max_rows = 66
+max_cols = 139
 
-# import timeit
-#
-# simulation = Simulation(grid, {'num_pedestrians': 500, 'visualization': True})
-# print(timeit.Timer(simulation.run).timeit(number=1))
+type_map = { 'sidewalk': 1, 'crosswalk': 2, 'entrance': 3, 'exit': 4 }
+grid = Grid(max_rows, max_cols, 'playMat.png.vertex.stripped', 'playMat.png.edge.stripped', type_map)
+
+import timeit
+
+simulation = Simulation(grid, {'num_pedestrians': 500, 'visualization': True})
+print(timeit.Timer(simulation.run).timeit(number=1))
